@@ -1,4 +1,4 @@
---// Server Hopper Script (Standalone)
+-- Server Hopper Script (Fixed to avoid full servers)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -7,10 +7,10 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 100   -- How many pages to check per hop
-local HopDelay = 1.2     -- Seconds between hop attempts
+local MaxAttempts = 100  -- How many pages to check per hop
+local HopDelay = 1.2    -- Seconds between hop attempts
 
--- Load previously seen servers from file
+-- Load saved servers from file
 local function loadSeenServers()
     pcall(function()
         local data = readfile("SeenServers.json")
@@ -25,7 +25,7 @@ local function saveSeenServers()
     end)
 end
 
--- Find a new server to hop to
+-- Find a server with 1–7 players and at least one empty slot
 local function findNewServer()
     local attempts = 0
     while attempts < MaxAttempts do
@@ -40,7 +40,11 @@ local function findNewServer()
 
         if success and result and result.data then
             for _, server in ipairs(result.data) do
-                if server.playing < server.maxPlayers and not SeenServers[server.id] then
+                if server.playing >= 4 
+                   and server.playing <= 7 
+                   and (server.maxPlayers - server.playing) >= 1
+                   and not SeenServers[server.id] then
+
                     SeenServers[server.id] = true
                     saveSeenServers()
                     return server.id
@@ -56,13 +60,13 @@ local function findNewServer()
     return nil
 end
 
--- Actually hop to a server
+-- Hop to new server
 local function hopServer()
     local newServerID = findNewServer()
     if newServerID then
         TeleportService:TeleportToPlaceInstance(PlaceID, newServerID, LocalPlayer)
     else
-        warn("⚠ No new servers found!")
+        warn("No new servers found!")
     end
 end
 
