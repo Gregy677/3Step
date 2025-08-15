@@ -1,4 +1,4 @@
--- Server Hopper Script (Skips full/restricted servers, 1–7 players only)
+--// Server Hopper Script (Standalone)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -7,10 +7,10 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 100  -- How many pages to check per hop
-local HopDelay = 1.2    -- Seconds between hop attempts
+local MaxAttempts = 100   -- How many pages to check per hop
+local HopDelay = 1.2     -- Seconds between hop attempts
 
--- Load saved servers from file
+-- Load previously seen servers from file
 local function loadSeenServers()
     pcall(function()
         local data = readfile("SeenServers.json")
@@ -25,7 +25,7 @@ local function saveSeenServers()
     end)
 end
 
--- Find a server with 1–7 players, not full, not restricted
+-- Find a new server to hop to
 local function findNewServer()
     local attempts = 0
     while attempts < MaxAttempts do
@@ -40,13 +40,7 @@ local function findNewServer()
 
         if success and result and result.data then
             for _, server in ipairs(result.data) do
-                -- Skip if restricted, full, already seen, or out of player range
-                if not server.vip and not server.privateServerOwnerId
-                   and server.playing >= 1 
-                   and server.playing <= 6 
-                   and (server.maxPlayers - server.playing) >= 1
-                   and not SeenServers[server.id] then
-
+                if server.playing < server.maxPlayers and not SeenServers[server.id] then
                     SeenServers[server.id] = true
                     saveSeenServers()
                     return server.id
@@ -62,13 +56,13 @@ local function findNewServer()
     return nil
 end
 
--- Hop to new server
+-- Actually hop to a server
 local function hopServer()
     local newServerID = findNewServer()
     if newServerID then
         TeleportService:TeleportToPlaceInstance(PlaceID, newServerID, LocalPlayer)
     else
-        warn("No new servers found!")
+        warn("⚠ No new servers found!")
     end
 end
 
