@@ -8,7 +8,7 @@ local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
 local MaxAttempts = 10  -- How many pages to check per hop
-local HopDelay = 3.1    -- Seconds between hop attempts
+local HopDelay = 3.2    -- Seconds between hop attempts
 
 -- Load saved servers from file
 local function loadSeenServers()
