@@ -1,4 +1,4 @@
--- Server Hopper Script (Fixed to avoid full servers)
+-- Server Hopper Script (Skips full/restricted servers, 1–7 players only)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -25,7 +25,7 @@ local function saveSeenServers()
     end)
 end
 
--- Find a server with 1–7 players and at least one empty slot
+-- Find a server with 1–7 players, not full, not restricted
 local function findNewServer()
     local attempts = 0
     while attempts < MaxAttempts do
@@ -40,8 +40,10 @@ local function findNewServer()
 
         if success and result and result.data then
             for _, server in ipairs(result.data) do
-                if server.playing >= 1 
-                   and server.playing <= 7 
+                -- Skip if restricted, full, already seen, or out of player range
+                if not server.vip and not server.privateServerOwnerId
+                   and server.playing >= 1 
+                   and server.playing <= 6 
                    and (server.maxPlayers - server.playing) >= 1
                    and not SeenServers[server.id] then
 
