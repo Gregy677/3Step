@@ -5,105 +5,38 @@ local LocalPlayer = Players.LocalPlayer
 
 local PlaceID = game.PlaceId
 local Cursor = nil
-local SeenServers = {}
-local MaxAttempts = 10
-local HopDelay = 1.2
-local MinPlayers, MaxPlayers = 4, 7
 
--- Load saved servers
-local function loadSeenServers()
-    if isfile and isfile("SeenServers.json") then
-        pcall(function()
-            local data = readfile("SeenServers.json")
-            SeenServers = HttpService:JSONDecode(data)
-        end)
-    end
-end
+-- Function to get a non-full server
+local function getServer()
+    local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Desc&limit=100%s"):format(
+        PlaceID,
+        Cursor and ("&cursor=" .. Cursor) or ""
+    )
 
--- Save seen servers
-local function saveSeenServers()
-    if writefile then
-        pcall(function()
-            writefile("SeenServers.json", HttpService:JSONEncode(SeenServers))
-        end)
-    end
-end
+    local success, result = pcall(function()
+        return HttpService:JSONDecode(game:HttpGet(url))
+    end)
 
--- Find a new server
-local function findNewServer()
-    local attempts = 0
-    while attempts < MaxAttempts do
-        local url = ("https://games.roblox.com/v1/games/%d/servers/Public?sortOrder=Asc&limit=100%s"):format(
-            PlaceID,
-            Cursor and ("&cursor=" .. Cursor) or ""
-        )
-
-        local success, result = pcall(function()
-            return HttpService:JSONDecode(game:HttpGet(url))
-        end)
-
-        if success and result and result.data then
-            for _, server in ipairs(result.data) do
-                if server.id
-                   and server.playing >= MinPlayers
-                   and server.playing <= MaxPlayers
-                   and (server.maxPlayers - server.playing) > 0
-                   and not SeenServers[server.id] then
-
-                    SeenServers[server.id] = true
-                    saveSeenServers()
-                    return server.id
-                end
+    if success and result and result.data then
+        for _, server in ipairs(result.data) do
+            if server.id and server.playing < server.maxPlayers then
+                return server.id
             end
-            Cursor = result.nextPageCursor
-            if not Cursor then break end
-        else
-            break
         end
-        attempts += 1
+        Cursor = result.nextPageCursor
     end
+
     return nil
 end
 
--- Handle teleport failures
-TeleportService.TeleportInitFailed:Connect(function(player, teleportResult, errorMessage)
-    warn("Teleport failed:", teleportResult, errorMessage)
-    task.wait(5) -- wait a bit before retry
-    -- Try hopping again
-    task.spawn(function()
-        local id = findNewServer()
-        if id then
-            TeleportService:TeleportToPlaceInstance(PlaceID, id, LocalPlayer)
-        end
-    end)
-end)
-
--- Teleport logic
-local hopping = false
-local function hopServer()
-    if hopping then return end
-    hopping = true
-    local newServerID = findNewServer()
-    if newServerID then
-        local success, err = pcall(function()
-            TeleportService:TeleportToPlaceInstance(PlaceID, newServerID, LocalPlayer)
-        end)
-        if not success then
-            warn("Teleport error:", err)
-            hopping = false
-        end
+-- Loop: try hopping every 1 second
+while task.wait(1) do
+    local serverId = getServer()
+    if serverId then
+        print("Teleporting to server:", serverId)
+        TeleportService:TeleportToPlaceInstance(PlaceID, serverId, LocalPlayer)
+        break -- stops loop since teleport will reload script in new server
     else
-        warn("No new servers found! Retrying later...")
-        hopping = false
-        task.wait(10)
+        warn("No available servers found, retrying...")
     end
 end
-
--- Start hopper loop
-loadSeenServers()
-task.spawn(function()
-    while true do
-        task.wait(HopDelay)
-        hopServer()
-    end
-end)
