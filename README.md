@@ -11,7 +11,7 @@ local Cursor = nil
 
 -- settings
 local HopDelay = 1.7 -- seconds between hops
-local MinSlots = 2 -- how many open slots required
+local MinSlots = 3 -- how many open slots required
 
 -- Try teleport with error protection
 local function SafeTeleport(serverId)
