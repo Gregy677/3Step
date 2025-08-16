@@ -1,17 +1,16 @@
---// Services
+-- Server Hopper Script (Fixed to avoid full servers)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
 local LocalPlayer = Players.LocalPlayer
 
---// Config
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 1000 -- Pages to check per hop
-local HopDelay = 1.2 -- Seconds between hop attempts
+local MaxAttempts = 10  -- How many pages to check per hop
+local HopDelay = 2.2    -- Seconds between hop attempts
 
--- Load saved server history
+-- Load saved servers from file
 local function loadSeenServers()
     pcall(function()
         local data = readfile("SeenServers.json")
@@ -19,14 +18,14 @@ local function loadSeenServers()
     end)
 end
 
--- Save visited servers
+-- Save seen servers to file
 local function saveSeenServers()
     pcall(function()
         writefile("SeenServers.json", HttpService:JSONEncode(SeenServers))
     end)
 end
 
--- Find a new server that is NOT full
+-- Find a server with 1–7 players and at least one empty slot
 local function findNewServer()
     local attempts = 0
     while attempts < MaxAttempts do
@@ -41,14 +40,11 @@ local function findNewServer()
 
         if success and result and result.data then
             for _, server in ipairs(result.data) do
-                -- Only join servers with 1–7 players AND at least 2 empty slots
-                if server.playing >= 4 
-                and server.playing <= 7 
-                and (server.maxPlayers - server.playing) >= 2 
-                and not server.vip 
-                and not server.privateServerOwnerId 
-                and not SeenServers[server.id] then
-                    
+                if server.playing >= 1 
+                   and server.playing <= 7 
+                   and (server.maxPlayers - server.playing) >= 1
+                   and not SeenServers[server.id] then
+
                     SeenServers[server.id] = true
                     saveSeenServers()
                     return server.id
@@ -64,7 +60,7 @@ local function findNewServer()
     return nil
 end
 
--- Hop to the selected server
+-- Hop to new server
 local function hopServer()
     local newServerID = findNewServer()
     if newServerID then
