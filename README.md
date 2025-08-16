@@ -8,7 +8,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 10 -- Pages to check per hop
+local MaxAttempts = 1000 -- Pages to check per hop
 local HopDelay = 1.2 -- Seconds between hop attempts
 
 -- Load saved server history
