@@ -6,7 +6,7 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 100
+local MaxAttempts = 10
 local HopDelay = 1.5
 local MinPlayers, MaxPlayers = 4, 7
 
