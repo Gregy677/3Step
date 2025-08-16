@@ -1,4 +1,3 @@
--- Server Hopper Script (Fixed to avoid full servers)
 local HttpService = game:GetService("HttpService")
 local TeleportService = game:GetService("TeleportService")
 local Players = game:GetService("Players")
@@ -7,25 +6,30 @@ local LocalPlayer = Players.LocalPlayer
 local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
-local MaxAttempts = 100  -- How many pages to check per hop
-local HopDelay = 1.2    -- Seconds between hop attempts
+local MaxAttempts = 100
+local HopDelay = 1.5
+local MinPlayers, MaxPlayers = 2, 8
 
--- Load saved servers from file
+-- Load saved servers
 local function loadSeenServers()
-    pcall(function()
-        local data = readfile("SeenServers.json")
-        SeenServers = HttpService:JSONDecode(data)
-    end)
+    if isfile and isfile("SeenServers.json") then
+        pcall(function()
+            local data = readfile("SeenServers.json")
+            SeenServers = HttpService:JSONDecode(data)
+        end)
+    end
 end
 
--- Save seen servers to file
+-- Save seen servers
 local function saveSeenServers()
-    pcall(function()
-        writefile("SeenServers.json", HttpService:JSONEncode(SeenServers))
-    end)
+    if writefile then
+        pcall(function()
+            writefile("SeenServers.json", HttpService:JSONEncode(SeenServers))
+        end)
+    end
 end
 
--- Find a server with 1–7 players and at least one empty slot
+-- Find a new server
 local function findNewServer()
     local attempts = 0
     while attempts < MaxAttempts do
@@ -40,9 +44,10 @@ local function findNewServer()
 
         if success and result and result.data then
             for _, server in ipairs(result.data) do
-                if server.playing >= 4 
-                   and server.playing <= 7 
-                   and (server.maxPlayers - server.playing) >= 1
+                if server.id
+                   and server.playing >= MinPlayers
+                   and server.playing <= MaxPlayers
+                   and (server.maxPlayers - server.playing) > 0
                    and not SeenServers[server.id] then
 
                     SeenServers[server.id] = true
@@ -60,13 +65,37 @@ local function findNewServer()
     return nil
 end
 
--- Hop to new server
+-- Handle teleport failures
+TeleportService.TeleportInitFailed:Connect(function(player, teleportResult, errorMessage)
+    warn("Teleport failed:", teleportResult, errorMessage)
+    task.wait(5) -- wait a bit before retry
+    -- Try hopping again
+    task.spawn(function()
+        local id = findNewServer()
+        if id then
+            TeleportService:TeleportToPlaceInstance(PlaceID, id, LocalPlayer)
+        end
+    end)
+end)
+
+-- Teleport logic
+local hopping = false
 local function hopServer()
+    if hopping then return end
+    hopping = true
     local newServerID = findNewServer()
     if newServerID then
-        TeleportService:TeleportToPlaceInstance(PlaceID, newServerID, LocalPlayer)
+        local success, err = pcall(function()
+            TeleportService:TeleportToPlaceInstance(PlaceID, newServerID, LocalPlayer)
+        end)
+        if not success then
+            warn("Teleport error:", err)
+            hopping = false
+        end
     else
-        warn("No new servers found!")
+        warn("No new servers found! Retrying later...")
+        hopping = false
+        task.wait(10)
     end
 end
 
