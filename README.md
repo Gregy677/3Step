@@ -8,7 +8,7 @@ local Cursor = nil
 local SeenServers = {}
 local MaxAttempts = 100
 local HopDelay = 1.5
-local MinPlayers, MaxPlayers = 2, 8
+local MinPlayers, MaxPlayers = 4, 7
 
 -- Load saved servers
 local function loadSeenServers()
