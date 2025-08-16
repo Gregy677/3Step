@@ -1,5 +1,5 @@
--- ⚡ Fast Server Hopper ⚡
--- Hops every 1 second and avoids full servers
+-- ⚡ Unstoppable Fast Server Hopper ⚡
+-- Hops every 1 second, avoids full servers, never stops on error
 
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
@@ -12,6 +12,16 @@ local Cursor = nil
 -- settings
 local HopDelay = 1.5 -- seconds between hops
 local MinSlots = 1 -- how many open slots required
+
+-- Try teleport with error protection
+local function SafeTeleport(serverId)
+    local ok, err = pcall(function()
+        TeleportService:TeleportToPlaceInstance(PlaceId, serverId, Player)
+    end)
+    if not ok then
+        warn("Teleport failed: ".. tostring(err))
+    end
+end
 
 local function Hop()
     local success, servers = pcall(function()
@@ -29,7 +39,7 @@ local function Hop()
             local id = server.id
 
             if maxPlayers - playing >= MinSlots and id ~= game.JobId then
-                TeleportService:TeleportToPlaceInstance(PlaceId, id, Player)
+                SafeTeleport(id)
                 return
             end
         end
@@ -37,9 +47,9 @@ local function Hop()
     end
 end
 
--- loop hopper
+-- loop hopper forever
 task.spawn(function()
     while task.wait(HopDelay) do
-        Hop()
+        pcall(Hop) -- even if Hop fails, script keeps running
     end
 end)
