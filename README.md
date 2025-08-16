@@ -1,5 +1,7 @@
--- ⚡ Unstoppable Fast Server Hopper ⚡
--- Hops every 1 second, avoids full servers, never stops on error
+-- ⚡ Ultra Fast Server Hopper ⚡
+-- Prioritizes servers with more open slots
+-- Retries quickly if teleport fails
+-- Hops every 1s without stopping
 
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
@@ -10,20 +12,23 @@ local Player = Players.LocalPlayer
 local Cursor = nil
 
 -- settings
-local HopDelay = 1.7 -- seconds between hops
-local MinSlots = 3 -- how many open slots required
+local HopDelay = 1 -- seconds between hop checks
+local MinSlots = 3 -- minimum open slots required
 
--- Try teleport with error protection
+-- Teleport safely (never stops on error)
 local function SafeTeleport(serverId)
     local ok, err = pcall(function()
         TeleportService:TeleportToPlaceInstance(PlaceId, serverId, Player)
     end)
     if not ok then
         warn("Teleport failed: ".. tostring(err))
+        return false
     end
+    return true
 end
 
-local function Hop()
+-- Grab server list and pick best one
+local function GetServers()
     local success, servers = pcall(function()
         local url = "https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Asc&limit=100"
         if Cursor then
@@ -33,23 +38,36 @@ local function Hop()
     end)
 
     if success and servers and servers.data then
-        for _, server in ipairs(servers.data) do
-            local maxPlayers = server.maxPlayers
-            local playing = server.playing
-            local id = server.id
+        Cursor = servers.nextPageCursor
+        return servers.data
+    end
+    return {}
+end
 
-            if maxPlayers - playing >= MinSlots and id ~= game.JobId then
-                SafeTeleport(id)
+-- Main hopper
+local function Hop()
+    local servers = GetServers()
+    if #servers == 0 then return end
+
+    -- Sort by MOST open slots
+    table.sort(servers, function(a, b)
+        return (a.maxPlayers - a.playing) > (b.maxPlayers - b.playing)
+    end)
+
+    -- Try servers one by one until teleport succeeds
+    for _, server in ipairs(servers) do
+        local openSlots = server.maxPlayers - server.playing
+        if openSlots >= MinSlots and server.id ~= game.JobId then
+            if SafeTeleport(server.id) then
                 return
             end
         end
-        Cursor = servers.nextPageCursor
     end
 end
 
--- loop hopper forever
+-- loop forever
 task.spawn(function()
     while task.wait(HopDelay) do
-        pcall(Hop) -- even if Hop fails, script keeps running
+        pcall(Hop)
     end
 end)
