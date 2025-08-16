@@ -7,7 +7,7 @@ local PlaceID = game.PlaceId
 local Cursor = nil
 local SeenServers = {}
 local MaxAttempts = 10
-local HopDelay = 1.5
+local HopDelay = 1.2
 local MinPlayers, MaxPlayers = 4, 7
 
 -- Load saved servers
