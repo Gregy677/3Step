@@ -12,7 +12,7 @@ local Player = Players.LocalPlayer
 local Cursor = nil
 
 -- settings
-local HopDelay = 0.5 -- seconds between hop checks
+local HopDelay = 0.8 -- seconds between hop checks
 local MinSlots = 3 -- minimum open slots required
 
 -- Teleport safely (never stops on error)
