@@ -13,10 +13,10 @@ local Cursor = nil
 
 -- settings
 local HopDelay = 0.8 -- ultra fast hopping
-local MinSlots = 3 -- minimum open slots required
+local MinSlots = 2 -- minimum open slots required
 
 -- random startup delay (desync clones)
-task.wait(math.random(1, 5))
+task.wait(math.random(1, 10))
 
 -- Teleport safely
 local function SafeTeleport(serverId)
