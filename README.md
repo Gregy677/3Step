@@ -12,7 +12,7 @@ local Player = Players.LocalPlayer
 local Cursor = nil
 
 -- settings
-local HopDelay = 0.8 -- ultra fast hopping
+local HopDelay = 6.8 -- ultra fast hopping
 local MinSlots = 2 -- minimum open slots required
 
 -- random startup delay (desync clones)
