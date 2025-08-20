@@ -2,6 +2,7 @@
 -- Hops every 0.8s
 -- Each clone randomizes start & server choice
 -- Avoids all clones picking the same server
+-- Only joins servers with 6-7 players
 
 local TeleportService = game:GetService("TeleportService")
 local HttpService = game:GetService("HttpService")
@@ -13,10 +14,11 @@ local Cursor = nil
 
 -- settings
 local HopDelay = 0.8 -- ultra fast hopping
-local MinSlots = 1 -- minimum open slots required
+local MinPlayers = 6 -- minimum players required
+local MaxPlayers = 7 -- maximum players allowed
 
 -- random startup delay (desync clones)
-task.wait(math.random(1, 1000))
+task.wait(math.random(1, 10))
 
 -- Teleport safely
 local function SafeTeleport(serverId)
@@ -55,24 +57,29 @@ local function Hop()
     local servers = GetServers()
     if #servers == 0 then return end
 
-    -- Sort by MOST open slots
-    table.sort(servers, function(a, b)
-        return (a.maxPlayers - a.playing) > (b.maxPlayers - b.playing)
-    end)
+    -- Filter servers to only include those with 6-7 players
+    local filteredServers = {}
+    for _, server in ipairs(servers) do
+        if server.playing >= MinPlayers and server.playing <= MaxPlayers and server.id ~= game.JobId then
+            table.insert(filteredServers, server)
+        end
+    end
+    
+    if #filteredServers == 0 then
+        warn("No servers found with " .. MinPlayers .. "-" .. MaxPlayers .. " players")
+        return
+    end
 
     -- Shuffle list so each clone picks differently
-    for i = #servers, 2, -1 do
+    for i = #filteredServers, 2, -1 do
         local j = math.random(i)
-        servers[i], servers[j] = servers[j], servers[i]
+        filteredServers[i], filteredServers[j] = filteredServers[j], filteredServers[i]
     end
 
     -- Try servers
-    for _, server in ipairs(servers) do
-        local openSlots = server.maxPlayers - server.playing
-        if openSlots >= MinSlots and server.id ~= game.JobId then
-            if SafeTeleport(server.id) then
-                return
-            end
+    for _, server in ipairs(filteredServers) do
+        if SafeTeleport(server.id) then
+            return
         end
     end
 end
