@@ -1,4 +1,4 @@
-dude this what are u doing -- ⚡ Ultra Fast Multi-Clone Server Hopper ⚡
+-- ⚡ Ultra Fast Multi-Clone Server Hopper ⚡
 -- Hops every 0.8s
 -- Each clone randomizes start & server choice
 -- Avoids all clones picking the same server
