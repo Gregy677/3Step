@@ -20,7 +20,7 @@ local Player = Players.LocalPlayer
 local lastDataHash = ""
 
 -- ======================
--- 🖥️ Ken Hub Pet Finder GUI
+-- 🖥️ Ken Hub Pet Finder GUI.
 -- ======================
 local ScreenGui = Instance.new("ScreenGui")
 ScreenGui.Name = "KenHubPetFinder"
