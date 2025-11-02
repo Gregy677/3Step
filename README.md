@@ -11,7 +11,7 @@ if game.PlaceId ~= allowedPlaceId then return end
 local UnderTen = "YOUR_WEBHOOK_URL_HERE" -- webhook for under 10m
 local OverTen = "YOUR_WEBHOOK_URL_HERE"  -- webhook for over 10m
 
--- 🔗 Your Replit API endpoint
+-- ðŸ”— Your Replit API endpoint
 local replitApiEndpoint = "https://8d93f3f5-a95f-4cc1-84d9-5d3dfb8650f5-00-3iq0togrerm7d.riker.replit.dev/api"
 
 local embedColor = 3447003
@@ -61,12 +61,12 @@ local function sendToReplitAPI(petsFound, jobId, playerCount)
         end)
         
         if success and response then
-            print("✅ Successfully sent " .. #petsFound .. " pets to Replit API")
+            print("âœ… Successfully sent " .. #petsFound .. " pets to Replit API")
         else
-            warn("❌ Failed to send pets to Replit API")
+            warn("âŒ Failed to send pets to Replit API")
         end
     else
-        warn("❌ HTTP request function not available")
+        warn("âŒ HTTP request function not available")
     end
 end
 
@@ -79,13 +79,13 @@ local function sendWebhook(url, petFound, moneyPerSec, tag, mutation, jobId, pin
             ["description"] = petFound,
             ["color"] = embedColor,
             ["fields"] = {
-                {["name"] = "💸 Money per Sec", ["value"] = moneyPerSec, ["inline"] = true},
-                {["name"] = "🏷️ Tag", ["value"] = tag, ["inline"] = true},
-                {["name"] = "🧬 Mutation", ["value"] = mutation, ["inline"] = true},
-                {["name"] = "👥 Player Count", ["value"] = tostring(playerCount) .. "/8", ["inline"] = true},
+                {["name"] = "ðŸ’¸ Money per Sec", ["value"] = moneyPerSec, ["inline"] = true},
+                {["name"] = "ðŸ·ï¸ Tag", ["value"] = tag, ["inline"] = true},
+                {["name"] = "ðŸ§¬ Mutation", ["value"] = mutation, ["inline"] = true},
+                {["name"] = "ðŸ‘¥ Player Count", ["value"] = tostring(playerCount) .. "/8", ["inline"] = true},
                 {["name"] = "Join Link", ["value"] = "[Join Here]("..getChilliHubJoinLink(jobId)..")", ["inline"] = false},
-                {["name"] = "🆔 Job ID (Mobile)", ["value"] = "``"..jobId.."``", ["inline"] = false},
-                {["name"] = "🆔 Job ID (PC)", ["value"] = "```"..jobId.."```", ["inline"] = false},
+                {["name"] = "ðŸ†” Job ID (Mobile)", ["value"] = "``"..jobId.."``", ["inline"] = false},
+                {["name"] = "ðŸ†” Job ID (PC)", ["value"] = "```"..jobId.."```", ["inline"] = false},
                 {["name"] = "Join Server",
                  ["value"] = string.format("```lua\ngame:GetService('TeleportService'):TeleportToPlaceInstance(%d, '%s', game.Players.LocalPlayer)\n```", placeId, jobId),
                  ["inline"] = false
@@ -226,6 +226,6 @@ for _, webhookData in pairs(webhooksToSend) do
 end
 
 if #webhooksToSend > 0 then
-    print("Sent", #webhooksToSend, "webhooks for player count 6–7.")
+    print("Sent", #webhooksToSend, "webhooks for player count 6â€“7.")
     print("Also sent", #petsForReplit, "pets to Replit API for GUI updates.")
 end
